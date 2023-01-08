@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"os"
+	"os/exec"
+	"os/signal"
+	"syscall"
 
 	"github.com/wxh06/tpanel"
 )
@@ -23,7 +26,23 @@ func main() {
 		panic(err)
 	}
 
-	if err := tpanel.WriteConfig(config); err != nil {
+	caddy := exec.Command(config.CaddyBin, "run")
+
+	// Handle the SIGINT and SIGTERM signal
+	c := make(chan os.Signal)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-c
+		if err := tpanel.WriteConfig(config); err != nil {
+			panic(err)
+		}
+		if err := caddy.Process.Signal(syscall.SIGTERM); err != nil {
+			panic(err)
+		}
+	}()
+
+	// Run Caddy server
+	if err := caddy.Run(); err != nil {
 		panic(err)
 	}
 }
