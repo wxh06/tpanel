@@ -1,7 +1,6 @@
 package tpanel
 
 import (
-	"errors"
 	"os"
 
 	"github.com/BurntSushi/toml"
@@ -9,20 +8,15 @@ import (
 
 type Config struct {
 	Filename string `toml:"-"`
-	CaddyBin string `toml:"caddy_bin"`
+	CaddyBin string `toml:"caddy_bin"` // Path to Caddy binary
 	GOPROXY  string `toml:"goproxy,omitempty"`
 }
 
-func ReadConfig(path string) (config Config) {
+func ReadConfig(path string) (config Config, err error) {
+	_, err = toml.DecodeFile(path, &config)
 	config.Filename = path
-	_, err := toml.DecodeFile(path, &config)
 	if config.CaddyBin == "" {
 		config.CaddyBin = "./caddy"
-	}
-	if errors.Is(err, os.ErrNotExist) {
-		if err := WriteConfig(config); err != nil {
-			panic(err)
-		}
 	}
 	return
 }

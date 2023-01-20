@@ -24,4 +24,4 @@ go.work
 /buildenv_*
 /caddy
 /tpanel
-/config.toml
+/configs/config.toml
